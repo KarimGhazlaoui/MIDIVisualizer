@@ -435,7 +435,7 @@ void State::updateOptions(){
 		_vecInfos[s_color_flashes_keys[cid]] = &flashes.colors[cid];
 	}
 
-	_intInfos[s_sets_mode_key] = (int*)&setOptions.mode;
+	//_intInfos[s_sets_mode_key] = (int*)&setOptions.mode;
 	_intInfos[s_sets_separator_key_key] = &setOptions.key;
 	_floatInfos[s_keyboard_size_key] = &keyboard.size;
 	_floatInfos[s_keyboard_minor_height_key] = &keyboard.minorHeight;
@@ -452,7 +452,7 @@ void State::updateOptions(){
 	_vecInfos[s_color_pedal_right_key] = &pedals.rightColor;
 	_vecInfos[s_color_pedal_left_key] = &pedals.leftColor;
 	_boolInfos[s_pedal_merge_key] = &pedals.merge;
-	_intInfos[s_pedal_location_key] = (int*)&pedals.location;
+	//_intInfos[s_pedal_location_key] = (int*)&pedals.location;
 	_floatInfos[s_pedal_img_offset_x_key] = &pedals.margin[0];
 	_floatInfos[s_pedal_img_offset_y_key] = &pedals.margin[1];
 	_boolInfos[s_pedal_img_mirrored_key] = &pedals.mirror;
@@ -597,6 +597,15 @@ void State::save(const std::string & path){
 
 	// No need to save filter-show-tracks and filter-show-channels, they are complementary of the two above.
 
+	// Save enums manually
+	configFile << std::endl << "# " << _sharedInfos[s_sets_mode_key].description << " (";
+	configFile << _sharedInfos[s_sets_mode_key].values << ")" << std::endl;
+	configFile << s_sets_mode_key << ": " << int(setOptions.mode) << std::endl;
+
+	configFile << std::endl << "# " << _sharedInfos[s_pedal_location_key].description << " (";
+	configFile << _sharedInfos[s_pedal_location_key].values << ")" << std::endl;
+	configFile << s_pedal_location_key << ": " << int(pedals.location) << std::endl;
+
 	configFile.close();
 
 	_filePath = outputPath;
@@ -700,6 +709,17 @@ void State::load(const Arguments & configArgs){
 		}
 		if( key ==s_filter_show_tracks_key ){
 			filter.fillTracksFromTokens( arg.second, true );
+			continue;
+		}
+
+		if(key == s_sets_mode_key){
+			int value = Configuration::parseInt(arg.second[0]);
+			setOptions.mode = SetMode(value);
+			continue;
+		}
+		if(key == s_pedal_location_key){
+			int value = Configuration::parseInt(arg.second[0]);
+			pedals.location = PedalsState::Location(value);
 			continue;
 		}
 

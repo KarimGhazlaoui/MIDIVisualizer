@@ -1105,7 +1105,10 @@ void Viewer::showPedalOptions(){
 
 	ImGuiPushItemWidth(100);
 	ImGuiSameLine(COLUMN_SIZE);
-	ImGui::Combo("Location", (int*)&_state.pedals.location, "Top left\0Bottom left\0Top right\0Bottom right\0");
+	int locationValue = int(_state.pedals.location);
+	if(ImGui::Combo("Location", &locationValue, "Top left\0Bottom left\0Top right\0Bottom right\0")){
+		_state.pedals.location = State::PedalsState::Location(locationValue);
+	}
 	ImGui::helpTooltip(s_pedal_location_dsc);
 
 	if(ImGui::SliderPercent("Opacity##Pedals", &_state.pedals.opacity, 0.0f, 1.0f)){
@@ -1493,19 +1496,19 @@ void Viewer::showSets(){
 		ImGui::Text("lower or higher than a given key, or defining custom lists.");
 
 		bool shouldUpdate = false;
-		shouldUpdate = ImGui::RadioButton("Channel", (int*)(&_state.setOptions.mode), int(SetMode::CHANNEL)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("Channel", _state.setOptions.mode, SetMode::CHANNEL) || shouldUpdate;
 		ImGui::helpTooltip("Assign each channel to a color set");
 		ImGuiSameLine(90);
-		shouldUpdate = ImGui::RadioButton("Track", (int*)(&_state.setOptions.mode), int(SetMode::TRACK)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("Track", _state.setOptions.mode, SetMode::TRACK) || shouldUpdate;
 		ImGui::helpTooltip("Assign each track to a color set");
 		ImGuiSameLine(2*90);
-		shouldUpdate = ImGui::RadioButton("Key", (int*)(&_state.setOptions.mode), int(SetMode::KEY)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("Key", _state.setOptions.mode, SetMode::KEY) || shouldUpdate;
 		ImGui::helpTooltip("Assign each of the eight keys to a color set");
 		ImGuiSameLine(3*90);
-		shouldUpdate = ImGui::RadioButton("Chromatic", (int*)(&_state.setOptions.mode), int(SetMode::CHROMATIC)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("Chromatic", _state.setOptions.mode, SetMode::CHROMATIC) || shouldUpdate;
 		ImGui::helpTooltip("Assign each of the twelve keys to a color set");
 
-		shouldUpdate = ImGui::RadioButton("Split", (int*)(&_state.setOptions.mode), int(SetMode::SPLIT)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("Split", _state.setOptions.mode, SetMode::SPLIT) || shouldUpdate;
 		ImGui::helpTooltip("Assign keys to a color set based on a separating key");
 		ImGuiSameLine();
 		ImGuiPushItemWidth(100);
@@ -1513,7 +1516,7 @@ void Viewer::showSets(){
 		ImGui::PopItemWidth();
 
 		ImGuiSameLine(2*90);
-		shouldUpdate = ImGui::RadioButton("List", (int*)(&_state.setOptions.mode), int(SetMode::LIST)) || shouldUpdate;
+		shouldUpdate = radioButtonSetMode("List", _state.setOptions.mode, SetMode::LIST) || shouldUpdate;
 		ImGui::helpTooltip("Assign keys to sets based on a list of keys, sets and timings");
 		ImGuiSameLine();
 		if(ImGui::Button("Configure...")){
@@ -2353,6 +2356,16 @@ void Viewer::startRecording(){
 	_finalFramebuffer->unbind();
 
 	_recorder.start(_verbose);
+}
+
+bool Viewer::radioButtonSetMode(const char* name, SetMode& mode, SetMode value){
+	int rawMode = int(mode);
+	int rawValue = int(value);
+	bool active = ImGui::RadioButton(name, &rawMode, rawValue);
+	if(active){
+		mode = SetMode(rawMode);
+	}
+	return active;
 }
 
 bool Viewer::channelColorEdit(const char * name, const char * displayName, ColorArray & colors){

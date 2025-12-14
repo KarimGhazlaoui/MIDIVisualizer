@@ -157,6 +157,8 @@ private:
 
 	void updateSizes();
 
+	bool radioButtonSetMode(const char* name, SetMode& mode, SetMode value);
+
 	bool channelColorEdit(const char * name, const char * displayName, ColorArray & colors);
 	
 	void updateMinMaxKeys();

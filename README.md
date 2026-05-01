@@ -1,4 +1,6 @@
-# MIDI Visualizer
+# MIDI Visualizer (MIDI Out Edition)
+
+> **Note:** This repository is a fork of the original [kosua20/MIDIVisualizer](https://github.com/kosua20/MIDIVisualizer). It has been modified to include **MIDI Out** capabilities, allowing the application to send real-time MIDI events to hardware synthesizers and virtual ports, both during file playback and live sessions.
 
 ![CI](https://github.com/kosua20/MIDIVisualizer/workflows/CI/badge.svg?branch=master)
 

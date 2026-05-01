@@ -10,12 +10,13 @@ jobs:
   build:
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-24.04
             cmake-opts: -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++
             artifact_name: build/MIDIVisualizer
-            asset_name: MIDIVisualizer-ubuntu20.zip
+            asset_name: MIDIVisualizer-ubuntu24.zip
             ffmpeg-archive: ffmpeg-ubuntu20-64-static-lgpl.zip
           - os: windows-2025
             cmake-opts: -A x64
@@ -31,7 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Dependencies-ubuntu
         if: startsWith(matrix.os, 'ubuntu')
@@ -87,15 +88,17 @@ jobs:
         shell: bash
         run: zip -j release.zip ${{matrix.artifact_name}}
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{runner.workspace}}/release.zip
-          asset_name: ${{matrix.asset_name}}
-          asset_content_type: application/zip
+          name: ${{ matrix.asset_name }}
+          path: ${{runner.workspace}}/release.zip
+
+      - name: Upload Release Asset
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{runner.workspace}}/release.zip
 
 
 

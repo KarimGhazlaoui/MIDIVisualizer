@@ -186,6 +186,17 @@ void MIDITrack::extractNotes(const std::vector<MIDITempo> & tempos, uint16_t uni
 	}
 }
 
+void MIDITrack::getRawNotes(std::vector<MIDINote>& notes, const FilterOptions& filter) const {
+	notes.clear();
+	notes.reserve(_notes.size());
+	for(const auto& note : _notes) {
+		if(!filter.accepts(note.track, note.channel)) {
+			continue;
+		}
+		notes.push_back(note);
+	}
+}
+
 void MIDITrack::getNotes(std::vector<MIDINote> & notes, NoteType type, const FilterOptions& filter ) const {
 	notes.clear();
 	notes.reserve( _notes.size() );
@@ -200,6 +211,10 @@ void MIDITrack::getNotes(std::vector<MIDINote> & notes, NoteType type, const Fil
 		}
 	}
 
+}
+
+void MIDITrack::getPedals(std::vector<MIDIPedal> & pedals) const {
+	pedals.insert(pedals.end(), _pedals.begin(), _pedals.end());
 }
 
 void MIDITrack::getNotesActive(ActiveNotesArray & actives, double time, const FilterOptions& filter ) const {

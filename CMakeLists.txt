@@ -107,6 +107,8 @@ set(Sources
 	"src/helpers/System.h"
 	"src/midi/MIDIFile.cpp"
 	"src/midi/MIDIFile.h"
+	"src/midi/MIDIPlayer.cpp"
+	"src/midi/MIDIPlayer.h"
 	"src/midi/MIDITrack.cpp"
 	"src/midi/MIDITrack.h"
 	"src/midi/MIDIUtils.cpp"

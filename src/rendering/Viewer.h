@@ -15,6 +15,8 @@
 #include "State.h"
 #include "Renderer.h"
 
+class MIDIPlayer;
+
 #define DEBUG_SPEED (1.0f)
 
 struct SystemAction {
@@ -208,6 +210,9 @@ private:
 	bool _exitAfterRecording = false;
 	bool _fullscreen = false;
 	bool _liveplay = false;
+	bool _liveplayThru = true;
 	bool _useTransparency = false;
 	const bool _supportTransparency;
+
+	std::shared_ptr<MIDIPlayer> _midiPlayer;
 };

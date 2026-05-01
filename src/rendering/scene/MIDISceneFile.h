@@ -33,6 +33,8 @@ public:
 	void save(std::ofstream& file) const override;
 
 	const std::string& filePath() const;
+	
+	const MIDIFile* file() const { return &_midiFile; }
 
 private:
 

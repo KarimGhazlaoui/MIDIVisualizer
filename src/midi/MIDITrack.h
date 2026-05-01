@@ -20,6 +20,10 @@ public:
 
 	void getNotes(std::vector<MIDINote> & notes, NoteType type, const FilterOptions& filter ) const;
 
+	void getRawNotes(std::vector<MIDINote>& notes, const FilterOptions& filter) const;
+
+	void getPedals(std::vector<MIDIPedal> & pedals) const;
+
 	void getNotesActive(ActiveNotesArray & actives, double time, const FilterOptions& filter ) const;
 
 	void normalizePedalVelocity();

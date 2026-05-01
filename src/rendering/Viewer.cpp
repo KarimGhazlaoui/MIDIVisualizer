@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Viewer.h"
+#include "../midi/MIDIPlayer.h"
 #include "scene/MIDIScene.h"
 #include "scene/MIDISceneFile.h"
 #include "scene/MIDISceneLive.h"
@@ -34,6 +35,8 @@ Viewer::Viewer(const Configuration& config) :
 	_fullscreen = config.fullscreen;
 	_windowSize = config.windowSize;
 	_useTransparency = config.useTransparency && _supportTransparency;
+	
+	_midiPlayer = std::make_shared<MIDIPlayer>();
 
 	// GL options
 	glEnable(GL_CULL_FACE);
@@ -145,6 +148,11 @@ bool Viewer::loadFile(const std::string& midiFilePath) {
 
 	// Init objects.
 	_scene = scene;
+	
+	if (std::shared_ptr<MIDISceneFile> fileScene = std::dynamic_pointer_cast<MIDISceneFile>(_scene)) {
+		_midiPlayer->loadFile(fileScene->file());
+	}
+	
 	applyAllSettings();
 	return true;
 }
@@ -168,6 +176,13 @@ bool Viewer::connectDevice(const std::string& deviceName) {
 	}
 
 	_scene = std::make_shared<MIDISceneLive>(_selectedPort, _verbose);
+	if(std::shared_ptr<MIDISceneLive> liveScene = std::dynamic_pointer_cast<MIDISceneLive>(_scene)) {
+		liveScene->setMidiOutCallback([this](const libremidi::message& msg) {
+			if(_liveplayThru) {
+				_midiPlayer->sendEvent(msg);
+			}
+		});
+	}
 	_timer = 0.0f;
 	// Don't start immediately
 	// _shouldPlay = true;
@@ -427,6 +442,32 @@ SystemAction Viewer::drawGUI(const float currentTime) {
 			}
 			showDevices();
 		}
+
+		ImGui::Separator();
+		
+		const auto& outDevices = MIDIPlayer::availablePorts();
+		ImGuiPushItemWidth(200);
+		if (ImGui::BeginCombo("Output Device", _midiPlayer->deviceName().empty() ? "None" : _midiPlayer->deviceName().c_str())) {
+			if (ImGui::Selectable("None", _midiPlayer->deviceName().empty())) {
+				_midiPlayer->disconnectDevice();
+			}
+			for (int i = 0; i < outDevices.size(); ++i) {
+				if (ImGui::Selectable(outDevices[i].c_str(), _midiPlayer->deviceName() == outDevices[i])) {
+					_midiPlayer->connectDevice(i);
+				}
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::PopItemWidth();
+		ImGui::helpTooltip("Select the MIDI Output Device to play sound");
+		
+		if(_liveplay) {
+			ImGuiSameLine(COLUMN_SIZE);
+			ImGui::Checkbox("Live MIDI Thru", &_liveplayThru);
+			ImGui::helpTooltip("Directly forward inputs to output device");
+		}
+
+		ImGui::Separator();
 
 		const bool existingScene = (std::dynamic_pointer_cast<MIDISceneFile>(_scene) != nullptr)
 								|| (std::dynamic_pointer_cast<MIDISceneLive>(_scene) != nullptr);
@@ -710,6 +751,8 @@ SystemAction Viewer::showTopButtons(double currentTime){
 	if (ImGui::Button(_shouldPlay ? "Pause (p)" : "Play (p)")) {
 		_shouldPlay = !_shouldPlay;
 		_timerStart = float(currentTime) - _timer;
+		if(_shouldPlay) { _midiPlayer->play(); }
+		else { _midiPlayer->pause(); }
 	}
 	ImGuiSameLine();
 	if (ImGui::Button("Restart (r)")) {
@@ -1432,6 +1475,31 @@ void Viewer::showDevices(){
 		}
 
 		ImGui::Separator();
+		
+		ImGui::Text("MIDI Output Device");
+		ImGui::Separator();
+		const auto& outDevices = MIDIPlayer::availablePorts();
+		int outPort = _midiPlayer->isConnected() ? _selectedPort : -1; // Wait, _selectedPort is for input. Need to track output port differently, but MIDIPlayer tracks it.
+		// Actually just let MIDIPlayer manage its own connection. Let's add a local static or use _midiPlayer's port.
+		// For simplicity, let's just do a combo.
+		
+		if (ImGui::BeginCombo("Output Device", _midiPlayer->deviceName().empty() ? "None" : _midiPlayer->deviceName().c_str())) {
+			if (ImGui::Selectable("None", _midiPlayer->deviceName().empty())) {
+				_midiPlayer->disconnectDevice();
+			}
+			for (int i = 0; i < outDevices.size(); ++i) {
+				if (ImGui::Selectable(outDevices[i].c_str(), _midiPlayer->deviceName() == outDevices[i])) {
+					_midiPlayer->connectDevice(i);
+				}
+			}
+			ImGui::EndCombo();
+		}
+		
+		if(_liveplay) {
+			ImGui::Checkbox("Live MIDI Thru", &_liveplayThru);
+		}
+
+		ImGui::Separator();
 
 		if(ImGui::Button("Cancel", buttonSize)){
 			ImGui::CloseCurrentPopup();
@@ -1441,6 +1509,13 @@ void Viewer::showDevices(){
 			ImGuiSameLine(EXPORT_COLUMN_SIZE);
 			if(ImGui::Button("Start", buttonSize)){
 				_scene = std::make_shared<MIDISceneLive>(_selectedPort, _verbose);
+				if(std::shared_ptr<MIDISceneLive> liveScene = std::dynamic_pointer_cast<MIDISceneLive>(_scene)) {
+					liveScene->setMidiOutCallback([this](const libremidi::message& msg) {
+						if(_liveplayThru) {
+							_midiPlayer->sendEvent(msg);
+						}
+					});
+				}
 				starting = true;
 			}
 		}
@@ -2207,6 +2282,8 @@ void Viewer::keyPressed(int key, int action) {
 		if (key == GLFW_KEY_P) {
 			_shouldPlay = !_shouldPlay;
 			_timerStart = DEBUG_SPEED * float(glfwGetTime()) - _timer;
+			if(_shouldPlay) { _midiPlayer->play(); }
+			else { _midiPlayer->pause(); }
 		}
 		else if (key == GLFW_KEY_R) {
 			reset();
@@ -2227,6 +2304,7 @@ void Viewer::reset() {
 	_timer = -_state.prerollTime;
 	_timerStart = DEBUG_SPEED * float(glfwGetTime()) + (_shouldPlay ? _state.prerollTime : 0.0f);
 	_scene->resetParticles();
+	_midiPlayer->seek(_timer);
 }
 
 void Viewer::setState(const State & state){

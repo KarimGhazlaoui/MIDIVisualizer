@@ -37,6 +37,8 @@ public:
 
 	void save(std::ofstream& file) const override;
 
+	void setMidiOutCallback(std::function<void(const libremidi::message&)> callback) { _midiOutCallback = callback; }
+
 	const std::string& deviceName() const;
 
 	static const std::vector<std::string> & availablePorts(bool force = false);
@@ -70,6 +72,8 @@ private:
 	SetOptions _currentSetOption;
 	std::string _deviceName;
 	bool _verbose = false;
+
+	std::function<void(const libremidi::message&)> _midiOutCallback;
 
 	static libremidi::midi_in & shared();
 

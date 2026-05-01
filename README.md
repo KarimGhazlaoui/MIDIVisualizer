@@ -10,7 +10,11 @@ See the [troubleshooting section](#troubleshooting) if you encounter any issue.
 
 ## Usage
 
-On Windows and macOS platforms, you can now **run the application by simply double-clicking** on it. You will then be able to select a MIDI file to load. A *Settings* panel allows you to modify display parameters such as color, scale, lines,... Images and videos of the track can be exported. Note that MIDIVisualizer is currently not able to *play* soundtracks, only *display* them.
+On Windows and macOS platforms, you can now **run the application by simply double-clicking** on it. You will then be able to select a MIDI file to load. A *Settings* panel allows you to modify display parameters such as color, scale, lines,... 
+
+**New:** MIDIVisualizer now supports **MIDI Out**! While the application itself does not generate audio, it can send precise MIDI events to any connected hardware synthesizer or virtual MIDI port (like LoopMIDI, IAC Driver).
+- **File Playback**: Load a `.mid` file, select an Output Device in the Settings panel, and press Play to route the notes and pedals to your synth.
+- **Live Thru**: Connect a MIDI keyboard as input, select an Output Device, and enable the "Live MIDI Thru" checkbox to instantly forward your playing to the synth while visualizing it.
 
 Press `p` to play/pause the track, `r` to restart at the beginning of the track, and `i` to show/hide the *Settings* panel. 
 
@@ -63,12 +67,6 @@ If display options are given, they will override those specified in the configur
 ## Troubleshooting
 
 Please note that MIDIVisualizer requires OpenGL 3.2 or higher on all platforms.
-
-- *MIDIVisualizer is not playing any sound.*  
-MIDIVisualizer is only a MIDI viewer, and does not currently support audio playback.
-
-- *I have encountered an issue while using MIDIVisualizer.*  
-You can open an issue ticket [here](https://github.com/kosua20/MIDIVisualizer/issues/new?assignees=&labels=bug&template=issue-report.md&title=). Please also check the issue [page](https://github.com/kosua20/MIDIVisualizer/issues), as some other people might have encountered a similar issue or offer help to your questions.
 
 ### Windows
 

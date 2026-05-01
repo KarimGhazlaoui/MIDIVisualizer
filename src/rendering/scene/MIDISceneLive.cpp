@@ -146,6 +146,10 @@ void MIDISceneLive::updatesActiveNotes(double time, double speed, const FilterOp
 		// Store message for saving.
 		frame.messages.push_back(message);
 
+		if (_midiOutCallback) {
+			_midiOutCallback(message);
+		}
+
 		const auto type = message.get_message_type();
 		// Handle note events.
 		if(message.is_note_on_or_off()){
